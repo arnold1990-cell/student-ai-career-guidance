@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/health").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/health", "/api/health").permitAll()
                         .requestMatchers("/api/v1/students/**").hasAnyRole("STUDENT", "ADMIN")
                         .requestMatchers("/api/v1/companies/**").hasAnyRole("COMPANY", "ADMIN")
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
