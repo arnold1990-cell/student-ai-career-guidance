@@ -66,6 +66,29 @@ mvn spring-boot:run
 
 # Package jar
 mvn clean package
+
+# Run packaged jar
+java -jar target/backend-0.0.1-SNAPSHOT.jar
+```
+
+## Troubleshooting
+
+### `Could not find or load main class com.edutech.BackendApplication`
+
+This usually happens when launching a Spring Boot fat jar with a classpath-style command such as:
+
+```bash
+java -cp target/backend-0.0.1-SNAPSHOT.jar com.edutech.BackendApplication
+```
+
+Use one of these instead:
+
+```bash
+# Recommended for local development
+mvn spring-boot:run
+
+# Recommended for packaged artifact execution
+java -jar target/backend-0.0.1-SNAPSHOT.jar
 ```
 
 ## API Documentation
