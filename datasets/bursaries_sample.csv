@@ -1,0 +1,5 @@
+bursary_id,provider_name,bursary_name,eligible_fields,minimum_score,region,application_deadline
+101,FutureTech Foundation,STEM Excellence Bursary,"Software Engineering;Data Science;Computer Science",75,National,2026-03-31
+102,BuildSA Group,Engineering Leaders Scholarship,"Mechanical Engineering;Civil Engineering",70,National,2026-04-15
+103,HealthFirst Trust,Healthcare Careers Grant,"Psychology;Nursing;Medicine",72,National,2026-02-28
+104,FinGrowth Partners,Finance Talent Bursary,"Accounting;Economics;Finance",74,National,2026-05-20

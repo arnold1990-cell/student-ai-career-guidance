@@ -1,44 +1,36 @@
-\# Student AI Career Guidance System
+# Edutech – AI Student Career Guidance Platform
 
+Edutech is an AI-powered platform designed to help students discover career pathways and access bursary opportunities through personalized recommendations and guided digital workflows.
 
+## Monorepo Structure
 
-This project is an AI-powered career guidance platform for students.
+- `backend/` – Spring Boot services and APIs
+- `frontend/` – React web application
+- `docs/` – Product, architecture, and legal documentation
+- `prompts/` – AI prompt templates for recommendations and workflows
+- `datasets/` – Seed sample data for careers and bursaries
 
+## High-Level Features
 
+- Student portal for profile, interest, and recommendation journeys
+- Company portal for bursary/program management and candidate discovery
+- Admin portal for platform configuration, moderation, and reporting
+- AI-powered career and bursary recommendations
+- Subscription payment support for premium service tiers
+- Notifications for opportunities, deadlines, and platform events
 
-It helps learners:
+## Local Development (Placeholders)
 
+### Backend (Spring Boot)
 
+```bash
+cd backend
+# TODO: add build + run steps (e.g., ./mvnw spring-boot:run)
+```
 
-\- Identify interests
+### Frontend (React)
 
-\- Understand career clusters
-
-\- Match subjects with careers
-
-\- Receive AI-based career recommendations
-
-
-
-\## Planned Features
-
-\- Career interest questionnaire
-
-\- AI career recommendation engine
-
-\- Student dashboard
-
-\- Teacher dashboard
-
-\- Offline school version
-
-
-
-\## Tech Stack
-
-\- Spring Boot
-
-\- PostgreSQL
-
-\- React
-
+```bash
+cd frontend
+# TODO: add install + run steps (e.g., npm install && npm run dev)
+```
