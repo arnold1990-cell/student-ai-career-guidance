@@ -7,10 +7,11 @@ import jakarta.validation.constraints.Size;
 public record RegisterStudentRequest(
         @NotBlank @Email String email,
         @NotBlank @Size(min = 8, max = 128) String password,
-        @NotBlank String fullName,
-        @NotBlank String fieldOfStudy,
-        @NotBlank String location,
-        @NotBlank String subjects,
-        @NotBlank String grades
+        @NotBlank String firstName,
+        @NotBlank String lastName,
+        String fieldOfStudy,
+        String location,
+        String subjects,
+        String grades
 ) {
 }

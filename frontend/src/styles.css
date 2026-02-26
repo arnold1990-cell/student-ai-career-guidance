@@ -138,3 +138,8 @@ button:disabled {
   margin-bottom: 10px;
   color: #475569;
 }
+
+.success-msg {
+  margin: 0;
+  color: #166534;
+}

@@ -22,8 +22,8 @@ export default function Navbar() {
         Edutech Career Guidance
       </div>
       <nav className="nav-links">
-        <NavLink className={navClassName} to="/student/login">Student</NavLink>
-        <NavLink className={navClassName} to="/company/login">Company</NavLink>
+        <NavLink className={navClassName} to="/student/register">Student</NavLink>
+        <NavLink className={navClassName} to="/company/register">Company</NavLink>
         <NavLink className={navClassName} to="/admin/login">Admin</NavLink>
       </nav>
       <div className="auth-tools">

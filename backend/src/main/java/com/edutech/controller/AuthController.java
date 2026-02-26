@@ -18,15 +18,27 @@ public class AuthController {
         this.authService = authService;
     }
 
+    @PostMapping("/register/student")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserResponse registerStudent(@Valid @RequestBody RegisterStudentRequest request) {
+        return authService.registerStudent(request);
+    }
+
+    @PostMapping("/register/company")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserResponse registerCompany(@Valid @RequestBody RegisterCompanyRequest request) {
+        return authService.registerCompany(request);
+    }
+
     @PostMapping("/register-student")
     @ResponseStatus(HttpStatus.CREATED)
-    public TokenResponse registerStudent(@Valid @RequestBody RegisterStudentRequest request) {
+    public UserResponse registerStudentLegacy(@Valid @RequestBody RegisterStudentRequest request) {
         return authService.registerStudent(request);
     }
 
     @PostMapping("/register-company")
     @ResponseStatus(HttpStatus.CREATED)
-    public TokenResponse registerCompany(@Valid @RequestBody RegisterCompanyRequest request) {
+    public UserResponse registerCompanyLegacy(@Valid @RequestBody RegisterCompanyRequest request) {
         return authService.registerCompany(request);
     }
 
@@ -62,4 +74,5 @@ public class AuthController {
     public UserResponse me() {
         return authService.me();
     }
+
 }

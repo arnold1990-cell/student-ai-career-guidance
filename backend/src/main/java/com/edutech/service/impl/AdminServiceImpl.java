@@ -41,7 +41,7 @@ public class AdminServiceImpl implements AdminService {
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
                 if (parts.length >= 2 && parts[0].contains("@")) {
-                    authService.registerStudent(new RegisterStudentRequest(parts[0], parts[1], "Imported Student",
+                    authService.registerStudent(new RegisterStudentRequest(parts[0], parts[1], "Imported", "Student",
                             "General", "Online", "Math", "A"));
                     created++;
                 }

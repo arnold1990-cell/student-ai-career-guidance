@@ -3,9 +3,9 @@ package com.edutech.service;
 import com.edutech.dto.*;
 
 public interface AuthService {
-    TokenResponse registerStudent(RegisterStudentRequest request);
+    UserResponse registerStudent(RegisterStudentRequest request);
 
-    TokenResponse registerCompany(RegisterCompanyRequest request);
+    UserResponse registerCompany(RegisterCompanyRequest request);
 
     TokenResponse login(AuthRequest request);
 

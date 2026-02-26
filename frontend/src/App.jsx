@@ -7,6 +7,8 @@ import HomePage from './pages/HomePage'
 import StudentLogin from './pages/StudentLogin'
 import CompanyLogin from './pages/CompanyLogin'
 import AdminLogin from './pages/AdminLogin'
+import StudentRegister from './pages/StudentRegister'
+import CompanyRegister from './pages/CompanyRegister'
 import StudentDashboard from './pages/StudentDashboard'
 import CompanyDashboard from './pages/CompanyDashboard'
 import AdminDashboard from './pages/AdminDashboard'
@@ -22,7 +24,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
 
+          <Route path="/student/register" element={<StudentRegister />} />
           <Route path="/student/login" element={<StudentLogin />} />
+          <Route path="/company/register" element={<CompanyRegister />} />
           <Route path="/company/login" element={<CompanyLogin />} />
           <Route path="/admin/login" element={<AdminLogin />} />
 
