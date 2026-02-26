@@ -17,7 +17,7 @@ public class CurrentUserService {
 
     public User requireCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "User not found"));
     }
 }

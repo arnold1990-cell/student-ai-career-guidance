@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -28,7 +29,7 @@ class AuthFlowIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void register_student_then_login_success() throws Exception {
+    void registerStudent_thenLogin_success() throws Exception {
         mockMvc.perform(post("/api/auth/register/student")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -51,6 +52,7 @@ class AuthFlowIntegrationTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.roles").isArray())
                 .andReturn().getResponse().getContentAsString();
 
@@ -59,7 +61,7 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
-    void register_company_then_login_success() throws Exception {
+    void registerCompany_thenLogin_success() throws Exception {
         mockMvc.perform(post("/api/auth/register/company")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -83,6 +85,7 @@ class AuthFlowIntegrationTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andReturn().getResponse().getContentAsString();
 
         JsonNode jsonNode = objectMapper.readTree(loginBody);
@@ -90,7 +93,7 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
-    void login_wrong_password_returns_401() throws Exception {
+    void login_wrongPassword_returns_401() throws Exception {
         mockMvc.perform(post("/api/auth/register/student")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -116,7 +119,7 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
-    void admin_seeded_user_can_login() throws Exception {
+    void admin_seeded_canLogin_success() throws Exception {
         String loginBody = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -127,6 +130,7 @@ class AuthFlowIntegrationTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andReturn().getResponse().getContentAsString();
 
         JsonNode jsonNode = objectMapper.readTree(loginBody);
@@ -134,7 +138,7 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
-    void protected_admin_endpoint_requires_admin() throws Exception {
+    void admin_endpoint_requires_admin() throws Exception {
         mockMvc.perform(get("/api/admin/ping"))
                 .andExpect(status().isUnauthorized());
 
@@ -183,6 +187,13 @@ class AuthFlowIntegrationTest {
         mockMvc.perform(get("/api/admin/ping")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("ok"));
+                .andExpect(content().string("ok"));
+    }
+
+    @Test
+    void public_ping_is_accessible_without_token() throws Exception {
+        mockMvc.perform(get("/api/public/ping"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("ok"));
     }
 }

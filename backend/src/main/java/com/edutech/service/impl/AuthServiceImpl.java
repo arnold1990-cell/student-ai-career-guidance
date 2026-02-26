@@ -77,13 +77,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private User registerUser(String email, String password, RoleName roleName) {
-        if (userRepository.existsByEmail(email)) {
+        String normalizedEmail = email.trim().toLowerCase();
+        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw new ApiException(HttpStatus.CONFLICT, "Email already registered");
         }
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "Invalid role"));
         return userRepository.save(User.builder()
-                .email(email)
+                .email(normalizedEmail)
                 .passwordHash(passwordEncoder.encode(password))
                 .roles(Set.of(role))
                 .enabled(true)
@@ -94,8 +95,8 @@ public class AuthServiceImpl implements AuthService {
     public TokenResponse login(AuthRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email(), request.password()));
-            User user = userRepository.findByEmail(authentication.getName())
+                    new UsernamePasswordAuthenticationToken(request.email().trim().toLowerCase(), request.password()));
+            User user = userRepository.findByEmailIgnoreCase(authentication.getName())
                     .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
             return tokensFor(user);
         } catch (BadCredentialsException ex) {
@@ -108,7 +109,7 @@ public class AuthServiceImpl implements AuthService {
         if (!jwtService.isRefreshToken(request.refreshToken())) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
         }
-        User user = userRepository.findByEmail(jwtService.extractSubject(request.refreshToken()))
+        User user = userRepository.findByEmailIgnoreCase(jwtService.extractSubject(request.refreshToken()))
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "User not found"));
         return tokensFor(user);
     }
@@ -128,7 +129,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserResponse me() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
         return toUserResponse(user);
     }

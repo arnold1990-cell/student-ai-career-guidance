@@ -20,8 +20,8 @@ public class AdminController {
 
 
     @GetMapping("/ping")
-    public Map<String, String> ping() {
-        return Map.of("status", "ok");
+    public String ping() {
+        return "ok";
     }
     @GetMapping("/users")
     public List<User> users() {
