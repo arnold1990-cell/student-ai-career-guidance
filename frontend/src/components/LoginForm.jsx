@@ -9,6 +9,18 @@ const roleConfig = {
   ADMIN: { loginPath: '/admin/login', dashboardPath: '/admin/dashboard' }
 }
 
+function formatSubmissionError(submissionError) {
+  if (!submissionError) {
+    return 'Login failed'
+  }
+
+  if (submissionError.status) {
+    return `Login failed (${submissionError.status}): ${submissionError.message}`
+  }
+
+  return submissionError.message || 'Login failed'
+}
+
 export default function LoginForm({ role }) {
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '' })
@@ -40,7 +52,7 @@ export default function LoginForm({ role }) {
       const roles = Array.isArray(me.roles) ? me.roles : []
       const normalizedRoles = roles.map(normalizeRole)
       if (!normalizedRoles.includes(normalizeRole(role))) {
-        throw new Error(`This account does not have ${role} access.`)
+        throw { status: 403, message: `This account does not have ${role} access.` }
       }
 
       setAuth({
@@ -52,7 +64,7 @@ export default function LoginForm({ role }) {
 
       navigate(roleConfig[role].dashboardPath, { replace: true })
     } catch (submissionError) {
-      setError(submissionError.message || 'Login failed')
+      setError(formatSubmissionError(submissionError))
     } finally {
       setLoading(false)
     }
