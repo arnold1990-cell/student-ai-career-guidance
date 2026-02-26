@@ -114,3 +114,4 @@ java -jar target/backend-0.0.1-SNAPSHOT.jar
 - Passwords are hashed with BCrypt.
 - CORS origins come from `EDUTECH_CORS_ALLOWED_ORIGINS`.
 - Basic rate limiting filter is enabled globally.
+- Flyway migration `V3__add_tier_to_subscriptions.sql` adds the missing `subscriptions.tier` column required by the JPA `Subscription` mapping when running with `ddl-auto=validate`.

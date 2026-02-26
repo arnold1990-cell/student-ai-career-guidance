@@ -1,0 +1,12 @@
+ALTER TABLE subscriptions
+    ADD COLUMN IF NOT EXISTS tier VARCHAR(16);
+
+UPDATE subscriptions
+SET tier = CASE
+    WHEN UPPER(COALESCE(plan, '')) IN ('BASIC', 'PREMIUM') THEN UPPER(plan)
+    ELSE 'BASIC'
+END
+WHERE tier IS NULL;
+
+ALTER TABLE subscriptions
+    ALTER COLUMN tier SET NOT NULL;
