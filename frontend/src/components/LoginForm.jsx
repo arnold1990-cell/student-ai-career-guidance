@@ -14,6 +14,10 @@ function formatSubmissionError(submissionError) {
     return 'Login failed'
   }
 
+  if (submissionError.status === 401) {
+    return 'Invalid credentials'
+  }
+
   if (submissionError.status) {
     return `Login failed (${submissionError.status}): ${submissionError.message}`
   }
@@ -38,8 +42,7 @@ export default function LoginForm({ role }) {
     setLoading(true)
 
     try {
-      const endpoint = role === 'ADMIN' ? '/api/admin/login' : '/api/auth/login'
-      const tokenData = await apiJson(endpoint, {
+      const tokenData = await apiJson('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify(form)
       })

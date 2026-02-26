@@ -16,6 +16,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final StudentProfileRepository studentProfileRepository;
@@ -93,13 +96,26 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponse login(AuthRequest request) {
+        String normalizedEmail = request.email().trim().toLowerCase();
+        userRepository.findByEmailIgnoreCase(normalizedEmail).ifPresentOrElse(
+                user -> log.debug("Login candidate found for email={} enabled={} roles={} passwordHashPrefix={}",
+                        normalizedEmail,
+                        user.isEnabled(),
+                        user.getRoles().stream().map(role -> role.getName().name()).toList(),
+                        passwordHashPrefix(user.getPasswordHash())),
+                () -> log.debug("Login candidate not found for email={}", normalizedEmail)
+        );
+
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email().trim().toLowerCase(), request.password()));
+                    new UsernamePasswordAuthenticationToken(normalizedEmail, request.password()));
             User user = userRepository.findByEmailIgnoreCase(authentication.getName())
                     .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+            log.debug("Login successful for email={} roles={}", user.getEmail(),
+                    user.getRoles().stream().map(role -> role.getName().name()).toList());
             return tokensFor(user);
         } catch (BadCredentialsException ex) {
+            log.debug("Login rejected due to bad credentials for email={}", normalizedEmail);
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
     }
@@ -132,6 +148,14 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
         return toUserResponse(user);
+    }
+
+    private String passwordHashPrefix(String passwordHash) {
+        if (passwordHash == null || passwordHash.isBlank()) {
+            return "<empty>";
+        }
+        int prefixLength = Math.min(passwordHash.length(), 4);
+        return passwordHash.substring(0, prefixLength);
     }
 
     private TokenResponse tokensFor(User user) {
