@@ -6,8 +6,10 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -16,10 +18,16 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/register")
+    @PostMapping("/register-student")
     @ResponseStatus(HttpStatus.CREATED)
-    public TokenResponse register(@Valid @RequestBody RegisterRequest request) {
-        return authService.register(request);
+    public TokenResponse registerStudent(@Valid @RequestBody RegisterStudentRequest request) {
+        return authService.registerStudent(request);
+    }
+
+    @PostMapping("/register-company")
+    @ResponseStatus(HttpStatus.CREATED)
+    public TokenResponse registerCompany(@Valid @RequestBody RegisterCompanyRequest request) {
+        return authService.registerCompany(request);
     }
 
     @PostMapping("/login")
@@ -30,6 +38,24 @@ public class AuthController {
     @PostMapping("/refresh")
     public TokenResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
         return authService.refresh(request);
+    }
+
+    @PostMapping("/logout")
+    public Map<String, String> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        authService.logout(authHeader);
+        return Map.of("message", "Logged out");
+    }
+
+    @PostMapping("/forgot-password")
+    public Map<String, String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return Map.of("message", "Reset instructions sent");
+    }
+
+    @PostMapping("/reset-password")
+    public Map<String, String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return Map.of("message", "Password reset complete");
     }
 
     @GetMapping("/me")
