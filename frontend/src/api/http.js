@@ -139,6 +139,8 @@ export async function apiFetch(path, options = {}, retry = true) {
       return apiFetch(path, options, false)
     }
 
+    clearAuth()
+
     if (typeof window !== 'undefined') {
       const section = window.location.pathname.split('/')[1]
       const redirectMap = {

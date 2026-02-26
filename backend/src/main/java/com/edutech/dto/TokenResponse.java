@@ -1,4 +1,11 @@
 package com.edutech.dto;
 
-public record TokenResponse(String accessToken, String refreshToken, String tokenType, long expiresInSeconds) {
+import java.util.Set;
+
+public record TokenResponse(String accessToken,
+                            String refreshToken,
+                            String tokenType,
+                            long expiresInSeconds,
+                            Set<String> roles,
+                            String email) {
 }

@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { apiJson } from '../api/http'
 import { setAuth, normalizeRole } from '../auth/authStorage'
 
 const roleConfig = {
-  STUDENT: { loginPath: '/student/login', dashboardPath: '/student/dashboard' },
-  COMPANY: { loginPath: '/company/login', dashboardPath: '/company/dashboard' },
+  STUDENT: { loginPath: '/student/login', dashboardPath: '/student/dashboard', registerPath: '/student/register' },
+  COMPANY: { loginPath: '/company/login', dashboardPath: '/company/dashboard', registerPath: '/company/register' },
   ADMIN: { loginPath: '/admin/login', dashboardPath: '/admin/dashboard' }
 }
 
@@ -38,18 +38,13 @@ export default function LoginForm({ role }) {
     setLoading(true)
 
     try {
-      const tokenData = await apiJson('/api/auth/login', {
+      const endpoint = role === 'ADMIN' ? '/api/admin/login' : '/api/auth/login'
+      const tokenData = await apiJson(endpoint, {
         method: 'POST',
         body: JSON.stringify(form)
       })
 
-      const me = await apiJson('/api/auth/me', {
-        headers: {
-          Authorization: `Bearer ${tokenData.accessToken}`
-        }
-      })
-
-      const roles = Array.isArray(me.roles) ? me.roles : []
+      const roles = Array.isArray(tokenData.roles) ? tokenData.roles : []
       const normalizedRoles = roles.map(normalizeRole)
       if (!normalizedRoles.includes(normalizeRole(role))) {
         throw { status: 403, message: `This account does not have ${role} access.` }
@@ -59,7 +54,7 @@ export default function LoginForm({ role }) {
         accessToken: tokenData.accessToken,
         refreshToken: tokenData.refreshToken,
         roles,
-        user: { id: me.id, email: me.email }
+        user: { email: tokenData.email ?? form.email }
       })
 
       navigate(roleConfig[role].dashboardPath, { replace: true })
@@ -87,6 +82,7 @@ export default function LoginForm({ role }) {
         {error ? <p className="error-msg">{error}</p> : null}
         <button type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Login'}</button>
       </form>
+      {role !== 'ADMIN' ? <p className="helper">No account? <Link to={roleConfig[role].registerPath}>Register first</Link>.</p> : null}
       <p className="helper">Need another portal? Use the navbar to switch between role logins.</p>
     </section>
   )
