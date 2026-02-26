@@ -1,26 +1,19 @@
 package com.edutech.controller;
 
-import com.edutech.domain.Role;
-import com.edutech.domain.RoleName;
-import com.edutech.domain.User;
-import com.edutech.repository.RoleRepository;
-import com.edutech.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Set;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -34,101 +27,162 @@ class AuthFlowIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @BeforeEach
-    void setupRolesAndAdmin() {
-        for (RoleName roleName : RoleName.values()) {
-            roleRepository.findByName(roleName)
-                    .orElseGet(() -> roleRepository.save(Role.builder().name(roleName).build()));
-        }
-
-        if (!userRepository.existsByEmail("admin@edutech.local")) {
-            Role adminRole = roleRepository.findByName(RoleName.ADMIN).orElseThrow();
-            userRepository.save(User.builder()
-                    .email("admin@edutech.local")
-                    .passwordHash(passwordEncoder.encode("Admin@12345"))
-                    .enabled(true)
-                    .roles(Set.of(adminRole))
-                    .build());
-        }
-    }
-
     @Test
-    void registerLoginAndRbacFlow() throws Exception {
-        String registerPayload = """
-                {
-                  "email":"student1@example.com",
-                  "password":"StrongPass123",
-                  "firstName":"Stu",
-                  "lastName":"Dent"
-                }
-                """;
-
+    void register_student_then_login_success() throws Exception {
         mockMvc.perform(post("/api/auth/register/student")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(registerPayload))
+                        .content("""
+                                {
+                                  "email":"student1@example.com",
+                                  "password":"StrongPass123",
+                                  "firstName":"Stu",
+                                  "lastName":"Dent"
+                                }
+                                """))
                 .andExpect(status().isCreated());
 
-        String loginPayload = """
-                {
-                  "email":"student1@example.com",
-                  "password":"StrongPass123"
-                }
-                """;
-
-        String loginResponse = mockMvc.perform(post("/api/auth/login")
+        String loginBody = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginPayload))
+                        .content("""
+                                {
+                                  "email":"student1@example.com",
+                                  "password":"StrongPass123"
+                                }
+                                """))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.roles").isArray())
                 .andReturn().getResponse().getContentAsString();
 
-        JsonNode studentTokenNode = objectMapper.readTree(loginResponse);
-        String studentToken = studentTokenNode.get("accessToken").asText();
-
-        mockMvc.perform(get("/api/admin/users")
-                        .header("Authorization", "Bearer " + studentToken))
-                .andExpect(status().isForbidden());
-
-        String adminLoginPayload = """
-                {
-                  "email":"admin@edutech.local",
-                  "password":"Admin@12345"
-                }
-                """;
-
-        String adminResponse = mockMvc.perform(post("/api/admin/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(adminLoginPayload))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-
-        String adminToken = objectMapper.readTree(adminResponse).get("accessToken").asText();
-
-        mockMvc.perform(get("/api/admin/users")
-                        .header("Authorization", "Bearer " + adminToken))
-                .andExpect(status().isOk());
+        JsonNode jsonNode = objectMapper.readTree(loginBody);
+        assertThat(jsonNode.get("roles").toString()).contains("STUDENT");
     }
 
     @Test
-    void invalidCredentialsReturnUnauthorized() throws Exception {
-        String invalidPayload = """
-                {
-                  "email":"missing@example.com",
-                  "password":"WrongPass123"
-                }
-                """;
+    void register_company_then_login_success() throws Exception {
+        mockMvc.perform(post("/api/auth/register/company")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"company1@example.com",
+                                  "password":"StrongPass123",
+                                  "companyName":"Acme Corp",
+                                  "website":"https://acme.example",
+                                  "industry":"Technology"
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        String loginBody = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"company1@example.com",
+                                  "password":"StrongPass123"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andReturn().getResponse().getContentAsString();
+
+        JsonNode jsonNode = objectMapper.readTree(loginBody);
+        assertThat(jsonNode.get("roles").toString()).contains("COMPANY");
+    }
+
+    @Test
+    void login_wrong_password_returns_401() throws Exception {
+        mockMvc.perform(post("/api/auth/register/student")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"student2@example.com",
+                                  "password":"StrongPass123",
+                                  "firstName":"First",
+                                  "lastName":"Last"
+                                }
+                                """))
+                .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidPayload))
+                        .content("""
+                                {
+                                  "email":"student2@example.com",
+                                  "password":"WrongPass123"
+                                }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Invalid credentials"));
+    }
+
+    @Test
+    void admin_seeded_user_can_login() throws Exception {
+        String loginBody = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"admin@edutech.local",
+                                  "password":"Admin@12345"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andReturn().getResponse().getContentAsString();
+
+        JsonNode jsonNode = objectMapper.readTree(loginBody);
+        assertThat(jsonNode.get("roles").toString()).contains("ADMIN");
+    }
+
+    @Test
+    void protected_admin_endpoint_requires_admin() throws Exception {
+        mockMvc.perform(get("/api/admin/ping"))
                 .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/auth/register/student")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"student3@example.com",
+                                  "password":"StrongPass123",
+                                  "firstName":"Stu",
+                                  "lastName":"Dent"
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        String studentLoginBody = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"student3@example.com",
+                                  "password":"StrongPass123"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        String studentToken = objectMapper.readTree(studentLoginBody).get("accessToken").asText();
+
+        mockMvc.perform(get("/api/admin/ping")
+                        .header("Authorization", "Bearer " + studentToken))
+                .andExpect(status().isForbidden());
+
+        String adminLoginBody = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"admin@edutech.local",
+                                  "password":"Admin@12345"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        String adminToken = objectMapper.readTree(adminLoginBody).get("accessToken").asText();
+
+        mockMvc.perform(get("/api/admin/ping")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ok"));
     }
 }

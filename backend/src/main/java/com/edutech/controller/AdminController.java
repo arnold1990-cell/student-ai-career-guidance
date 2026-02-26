@@ -18,6 +18,11 @@ public class AdminController {
         this.adminService = adminService;
     }
 
+
+    @GetMapping("/ping")
+    public Map<String, String> ping() {
+        return Map.of("status", "ok");
+    }
     @GetMapping("/users")
     public List<User> users() {
         return adminService.users();
