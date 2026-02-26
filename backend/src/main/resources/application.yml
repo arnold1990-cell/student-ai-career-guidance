@@ -42,7 +42,7 @@ springdoc:
 
 edutech:
   cors:
-    allowed-origins: ${EDUTECH_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    allowed-origins: ${EDUTECH_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
   jwt:
     secret: ${EDUTECH_JWT_SECRET:replace-with-a-minimum-32-char-secret-key}
     access-token-expiration-ms: ${EDUTECH_JWT_ACCESS_EXPIRATION_MS:900000}
